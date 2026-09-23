@@ -1,37 +1,39 @@
 import yfinance as yf
 import matplotlib.pyplot as plt
 
-# Stock we want to analyze
+# Choose the stock
 ticker = "JPM"
 
-# Download the last year of stock data
-stock = yf.download(ticker, period="1y")
+# Download one year of JPM stock data
+stock = yf.download(ticker, period="1y", auto_adjust=True)
 
-# Calculate daily returns
-stock["Daily Return"] = stock["Close"].pct_change()
+# Get closing prices and remove missing values
+close = stock["Close"].dropna()
 
 # Calculate moving averages
-stock["50 Day MA"] = stock["Close"].rolling(window=50).mean()
-stock["200 Day MA"] = stock["Close"].rolling(window=200).mean()
+ma_50 = close.rolling(window=50).mean()
+ma_200 = close.rolling(window=200).mean()
 
-# Display basic information
+# Get starting and ending prices
+starting_price = float(close.iloc[0].iloc[0])
+ending_price = float(close.iloc[-1].iloc[0])
+
+# Calculate one-year return
+total_return = ((ending_price / starting_price) - 1) * 100
+
+# Print results
 print(f"Stock Analysis: {ticker}")
 print("-------------------------")
-print(f"Starting Price: ${stock['Close'].iloc[0].item():.2f}")
-print(f"Ending Price: ${stock['Close'].iloc[-1].item():.2f}")
-
-total_return = (
-    (stock["Close"].iloc[-1].item() / stock["Close"].iloc[0].item()) - 1
-) * 100
-
+print(f"Starting Price: ${starting_price:.2f}")
+print(f"Ending Price: ${ending_price:.2f}")
 print(f"1-Year Return: {total_return:.2f}%")
 
-# Create stock price chart
+# Create the chart
 plt.figure(figsize=(12, 6))
 
-plt.plot(stock.index, stock["Close"], label="Closing Price")
-plt.plot(stock.index, stock["50 Day MA"], label="50-Day Moving Average")
-plt.plot(stock.index, stock["200 Day MA"], label="200-Day Moving Average")
+plt.plot(close.index, close, label="Closing Price")
+plt.plot(ma_50.index, ma_50, label="50-Day Moving Average")
+plt.plot(ma_200.index, ma_200, label="200-Day Moving Average")
 
 plt.title(f"{ticker} Stock Price Analysis")
 plt.xlabel("Date")
